@@ -13,7 +13,7 @@ import {
     sm4Decrypt,
     sm4Encrypt,
     utf8ToBytes,
-} from './smcrypto.ts'
+} from './src/smcrypto.ts'
 import {optimized, optimizedName, optimizedShortName, original, referenceName} from './reference.mjs'
 
 const privateHex = '75b25a5d6101013e9be25816f81cf1f64bf78ea8383b32d61f5b26e6f1429e70'

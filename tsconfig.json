@@ -3,33 +3,17 @@
     "target": "ES2020",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
-    "types": [
-      "vite/client"
-    ],
+    "lib": ["ES2020", "DOM"],
+    "types": ["vite/client"],
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "moduleDetection": "force",
     "declaration": true,
     "emitDeclarationOnly": true,
+    "rootDir": "src",
     "outDir": "dist",
     "strict": true
   },
-  "include": [
-    "smcrypto.ts",
-    "utils.ts",
-    "sm2.ts",
-    "sm3.ts",
-    "sm4.ts",
-    "types.ts",
-    "types.test.ts"
-  ],
-  "exclude": [
-    "vite.config.ts",
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["vite.config.ts", "test", "node_modules", "dist"]
 }

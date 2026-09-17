@@ -22,12 +22,12 @@
     "dist/sm4.d.ts",
     "dist/types.d.ts",
     "dist/utils.d.ts",
-    "smcrypto.ts",
-    "sm2.ts",
-    "sm3.ts",
-    "sm4.ts",
-    "utils.ts",
-    "types.ts",
+    "src/smcrypto.ts",
+    "src/sm2.ts",
+    "src/sm3.ts",
+    "src/sm4.ts",
+    "src/utils.ts",
+    "src/types.ts",
     "LICENSE",
     "README.md"
   ],
@@ -49,19 +49,51 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "playwright": "^1.60.0",
+    "prettier": "^3.8.3",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.8",
     "@noble/hashes": "1.8.0",
     "sm-crypto": "0.5.7",
     "sm-crypto-v2": "1.15.1",
-    "typescript": "5.9.3",
     "vite": "8.3.0",
     "@types/node": "^22.20.3"
   },
+  "prettier": {
+    "singleQuote": false,
+    "semi": false,
+    "trailingComma": "es5",
+    "bracketSpacing": true,
+    "endOfLine": "lf",
+    "bracketSameLine": false,
+    "cursorOffset": 2
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx,json,css,scss,md}": [
+      "npm lint"
+    ]
+  },
   "scripts": {
-    "test": "node --experimental-strip-types --test test.mjs",
-    "test:bundle": "npm run build && node --test bundle.test.mjs",
+    "test": "node --experimental-strip-types --test test/test.mjs",
+    "test:bundle": "npm run build && node --test test/bundle.test.mjs",
     "bench": "node --experimental-strip-types benchmark.mjs",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
     "build": "vite build && tsc -p tsconfig.json",
+    "lint": "eslint . --fix",
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "commitlint": "commitlint --edit",
+    "publish": "npm run build && npm publish --access public --registry=https://registry.npmjs.org/",
     "prepublishOnly": "npm run typecheck && npm test && npm run test:bundle"
   }
 }
