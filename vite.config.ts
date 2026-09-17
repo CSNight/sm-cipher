@@ -7,7 +7,7 @@ export default defineConfig({
     sourcemap: false,
     minify: "oxc",
     lib: {
-      entry: resolve(import.meta.dirname, "src/smcrypto.ts"),
+      entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es"],
       fileName: () => "smcrypto.js",
     },

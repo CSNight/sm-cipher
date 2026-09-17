@@ -9,7 +9,6 @@ import {
   PrecomputedPublicKey,
   precomputePublicKey,
   PublicKey,
-  SignaturePoint,
   SM2CipherMode,
   Sm2CipherOptions,
   sm2Decrypt,
@@ -21,7 +20,7 @@ import {
   sm4Encrypt,
   SM4Options,
   utf8ToBytes,
-} from "../src/smcrypto.ts"
+} from "../src/index.ts"
 
 const pair = generateKeyPair()
 const prepared: PrecomputedPublicKey = precomputePublicKey(pair.publicKey, 4)
@@ -48,8 +47,5 @@ const _pk2: PublicKey = prepared
 // Type-check options
 const _opts: Sm2CipherOptions = { asn1: true }
 const _sm4opts: SM4Options = { padding: "pkcs#7", mode: "cbc" }
-
-// Type-check SignaturePoint (from sm2Sign internals — just verify import)
-type _CheckSignaturePoint = SignaturePoint
 
 void [C1C2C3, C1C3C2, valid, ecb, text, encoded, _pk1, _pk2, _opts, _sm4opts]

@@ -48,7 +48,7 @@ type AffinePoint = { x: bigint; y: bigint }
 type ResolvedPublicKey = {
   point: JacobianPoint
   publicKey: Uint8Array
-  table?: JacobianPoint[]
+  table?: JacobianPoint[][]
   windowSize?: number
 }
 const precomputedPublicKeys = new WeakMap<
@@ -139,42 +139,65 @@ function scalarMultiply(point: JacobianPoint, scalar: bigint): JacobianPoint {
   return result
 }
 
-let baseTable: JacobianPoint[] | undefined
+const BASE_WINDOW_BITS = 5
+let baseTable: JacobianPoint[][] | undefined
 
-function getBaseTable(): JacobianPoint[] {
-  if (!baseTable) {
-    baseTable = [INF]
-    for (let i = 1; i < 16; i++) baseTable.push(pointAdd(baseTable[i - 1], G))
+function pointNegate(point: JacobianPoint): JacobianPoint {
+  return point.z === 0n
+    ? INF
+    : { x: point.x, y: point.y === 0n ? 0n : P - point.y, z: point.z }
+}
+
+function createFixedWindowTable(
+  point: JacobianPoint,
+  windowSize: number
+): JacobianPoint[][] {
+  const half = 1 << (windowSize - 1)
+  const windowCount = Math.ceil(256 / windowSize) + 1
+  const table: JacobianPoint[][] = []
+  let base = point
+  for (let window = 0; window < windowCount; window++) {
+    const multiples = [INF, base]
+    for (let digit = 2; digit <= half; digit++)
+      multiples.push(pointAdd(multiples[digit - 1], base))
+    table.push(multiples)
+    for (let bit = 0; bit < windowSize; bit++) base = pointDouble(base)
   }
+  return table
+}
+
+function scalarMultiplyWindow(
+  table: JacobianPoint[][],
+  windowSize: number,
+  scalar: bigint
+): JacobianPoint {
+  const radix = 1 << windowSize
+  const half = radix >>> 1
+  const shift = BigInt(windowSize)
+  const mask = (1n << shift) - 1n
+  let result = INF
+  let value = scalar
+  let window = 0
+  while (value > 0n) {
+    let digit = Number(value & mask)
+    if (digit > half) digit -= radix
+    if (digit !== 0) {
+      const point = table[window][Math.abs(digit)]
+      result = pointAdd(result, digit < 0 ? pointNegate(point) : point)
+    }
+    value = (value - BigInt(digit)) >> shift
+    window++
+  }
+  return result
+}
+
+function getBaseTable(): JacobianPoint[][] {
+  if (!baseTable) baseTable = createFixedWindowTable(G, BASE_WINDOW_BITS)
   return baseTable
 }
 
 function scalarMultiplyBase(scalar: bigint): JacobianPoint {
-  const table = getBaseTable()
-  const hex = scalar.toString(16)
-  let result = INF
-  for (const digit of hex) {
-    result = pointDouble(pointDouble(pointDouble(pointDouble(result))))
-    result = pointAdd(result, table[parseInt(digit, 16)])
-  }
-  return result
-}
-
-function scalarMultiplyWindow(
-  table: JacobianPoint[],
-  windowSize: number,
-  scalar: bigint
-): JacobianPoint {
-  const digits: number[] = []
-  const mask = (1n << BigInt(windowSize)) - 1n
-  for (let value = scalar; value > 0n; value >>= BigInt(windowSize))
-    digits.push(Number(value & mask))
-  let result = INF
-  for (let i = digits.length - 1; i >= 0; i--) {
-    for (let bit = 0; bit < windowSize; bit++) result = pointDouble(result)
-    result = pointAdd(result, table[digits[i]])
-  }
-  return result
+  return scalarMultiplyWindow(getBaseTable(), BASE_WINDOW_BITS, scalar)
 }
 
 function bigintToFixed(value: bigint, length = 64): string {
@@ -240,9 +263,10 @@ function decodePublicKey(publicKey: Uint8Array): AffinePoint {
 
 function resolvePublicKey(publicKey: PublicKey): ResolvedPublicKey {
   if (publicKey instanceof Uint8Array) {
-    const canonical = encodePublicKey(decodePublicKey(publicKey))
+    const decoded = decodePublicKey(publicKey)
+    const canonical = encodePublicKey(decoded)
     return {
-      point: affineToJacobian(decodePublicKey(canonical)),
+      point: affineToJacobian(decoded),
       publicKey: canonical,
     }
   }
@@ -279,9 +303,7 @@ export function precomputePublicKey(
   if (!Number.isInteger(windowSize) || windowSize < 2 || windowSize > 8)
     throw new Error("Invalid window size")
   const point = affineToJacobian(decodePublicKey(publicKey))
-  const table = [INF]
-  for (let i = 1; i < 2 ** windowSize; i++)
-    table.push(pointAdd(table[i - 1], point))
+  const table = createFixedWindowTable(point, windowSize)
   const canonical = encodePublicKey(pointToAffine(point))
   const prepared = Object.freeze({
     get publicKey() {

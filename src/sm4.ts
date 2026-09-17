@@ -95,22 +95,24 @@ function sm4RoundKeys(key: Uint8Array, decrypt: boolean): Uint32Array {
 function sm4Block(
   input: Uint8Array,
   output: Uint8Array,
-  keys: Uint32Array
+  keys: Uint32Array,
+  inputOffset = 0,
+  outputOffset = 0
 ): void {
-  let x0 = readU32BE(input, 0)
-  let x1 = readU32BE(input, 4)
-  let x2 = readU32BE(input, 8)
-  let x3 = readU32BE(input, 12)
+  let x0 = readU32BE(input, inputOffset)
+  let x1 = readU32BE(input, inputOffset + 4)
+  let x2 = readU32BE(input, inputOffset + 8)
+  let x3 = readU32BE(input, inputOffset + 12)
   for (let i = 0; i < 32; i += 4) {
     x0 = (x0 ^ sm4L(sm4Sub(x1 ^ x2 ^ x3 ^ keys[i]))) >>> 0
     x1 = (x1 ^ sm4L(sm4Sub(x2 ^ x3 ^ x0 ^ keys[i + 1]))) >>> 0
     x2 = (x2 ^ sm4L(sm4Sub(x3 ^ x0 ^ x1 ^ keys[i + 2]))) >>> 0
     x3 = (x3 ^ sm4L(sm4Sub(x0 ^ x1 ^ x2 ^ keys[i + 3]))) >>> 0
   }
-  writeU32BE(output, 0, x3)
-  writeU32BE(output, 4, x2)
-  writeU32BE(output, 8, x1)
-  writeU32BE(output, 12, x0)
+  writeU32BE(output, outputOffset, x3)
+  writeU32BE(output, outputOffset + 4, x2)
+  writeU32BE(output, outputOffset + 8, x1)
+  writeU32BE(output, outputOffset + 12, x0)
 }
 
 function sm4Key(input: Uint8Array): Uint8Array {
@@ -303,19 +305,21 @@ function sm4BlockMode(
   if (data.length % 16 !== 0) throw new Error("input length is invalid")
   const keys = sm4RoundKeys(key, decrypt)
   const output = new Uint8Array(data.length)
-  let previous = iv
+  const block = mode === "cbc" && !decrypt ? new Uint8Array(16) : undefined
   for (let offset = 0; offset < data.length; offset += 16) {
-    const block = data.slice(offset, offset + 16)
-    const encrypted = new Uint8Array(16)
-    if (!decrypt && mode === "cbc")
-      for (let i = 0; i < 16; i++) block[i] ^= previous[i]
-    sm4Block(block, encrypted, keys)
-    if (decrypt && mode === "cbc")
-      for (let i = 0; i < 16; i++) encrypted[i] ^= previous[i]
-    output.set(encrypted, offset)
-    previous =
-      decrypt && mode === "cbc" ? data.slice(offset, offset + 16) : encrypted
+    if (mode === "ecb") sm4Block(data, output, keys, offset, offset)
+    else if (decrypt) {
+      sm4Block(data, output, keys, offset, offset)
+      for (let i = 0; i < 16; i++)
+        output[offset + i] ^= offset === 0 ? iv[i] : data[offset - 16 + i]
+    } else {
+      for (let i = 0; i < 16; i++)
+        block![i] =
+          data[offset + i] ^ (offset === 0 ? iv[i] : output[offset - 16 + i])
+      sm4Block(block!, output, keys, 0, offset)
+    }
   }
+  block?.fill(0)
   if (
     decrypt &&
     (padding === "pkcs#5" || padding === "pkcs#7" || padding === undefined)

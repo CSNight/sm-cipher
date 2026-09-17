@@ -7,22 +7,22 @@
   "license": "MIT",
   "main": "./dist/smcrypto.js",
   "module": "./dist/smcrypto.js",
-  "types": "./dist/smcrypto.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/smcrypto.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/smcrypto.js"
     }
   },
   "files": [
     "dist/smcrypto.js",
-    "dist/smcrypto.d.ts",
+    "dist/index.d.ts",
     "dist/sm2.d.ts",
     "dist/sm3.d.ts",
     "dist/sm4.d.ts",
     "dist/types.d.ts",
     "dist/utils.d.ts",
-    "src/smcrypto.ts",
+    "src/index.ts",
     "src/sm2.ts",
     "src/sm3.ts",
     "src/sm4.ts",
@@ -86,7 +86,9 @@
   "scripts": {
     "test": "node --experimental-strip-types --test test/test.mjs",
     "test:bundle": "npm run build && node --test test/bundle.test.mjs",
-    "bench": "node --experimental-strip-types benchmark.mjs",
+    "bench": "npm run build && node test/benchmark.mjs",
+    "bench:throughput": "npm run build && node test/benchmark.mjs --throughput-only",
+    "bench:startup": "npm run build && node test/benchmark.mjs --startup-only",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
     "build": "vite build && tsc -p tsconfig.json",
     "lint": "eslint . --fix",

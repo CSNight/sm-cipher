@@ -19,7 +19,7 @@ export default defineConfig(
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es2022,
+        ...globals.es2020,
       },
     },
     plugins: {

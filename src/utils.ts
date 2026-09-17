@@ -126,16 +126,21 @@ export function hexToBytes(hex: string): Uint8Array {
 }
 
 export function bytesToHex(bytes: Uint8Array): string {
-  const input = copyBytes(bytes)
-  const out = new Array<string>(input.length)
-  for (let i = 0; i < input.length; i++)
-    out[i] = input[i].toString(16).padStart(2, "0")
+  if (!(bytes instanceof Uint8Array))
+    throw new TypeError("input must be a Uint8Array")
+  const out = new Array<string>(bytes.length)
+  for (let i = 0; i < bytes.length; i++)
+    out[i] = bytes[i].toString(16).padStart(2, "0")
   return out.join("")
 }
 
 export function concatBytes(...parts: Uint8Array[]): Uint8Array {
   let length = 0
-  for (const part of parts) length += copyBytes(part).length
+  for (const part of parts) {
+    if (!(part instanceof Uint8Array))
+      throw new TypeError("input must be a Uint8Array")
+    length += part.length
+  }
   const out = new Uint8Array(length)
   let offset = 0
   for (const part of parts) {
