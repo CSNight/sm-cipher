@@ -16,19 +16,19 @@ npm install sm-cipher
 
 ```ts
 import {
-    C1C3C2,
-    generateKeyPair,
-    sm2Encrypt,
-    sm2Decrypt,
-    sm2Sign,
-    sm2Verify,
-    sm3,
-    sm4Encrypt,
-    sm4Decrypt,
-    bytesToHex,
-    bytesToUtf8,
-    hexToBytes,
-    utf8ToBytes,
+  C1C3C2,
+  generateKeyPair,
+  sm2Encrypt,
+  sm2Decrypt,
+  sm2Sign,
+  sm2Verify,
+  sm3,
+  sm4Encrypt,
+  sm4Decrypt,
+  bytesToHex,
+  bytesToUtf8,
+  hexToBytes,
+  utf8ToBytes,
 } from "sm-cipher"
 
 const message = utf8ToBytes("message")
@@ -39,8 +39,8 @@ const cipher = sm2Encrypt(message, pair.publicKey, C1C3C2)
 const plaintext = sm2Decrypt(cipher, pair.privateKey, C1C3C2)
 
 // SM2 signing
-const signature = sm2Sign(message, pair.privateKey, {der: true})
-const valid = sm2Verify(message, signature, pair.publicKey, {der: true})
+const signature = sm2Sign(message, pair.privateKey, { der: true })
+const valid = sm2Verify(message, signature, pair.publicKey, { der: true })
 
 // SM3 hashing
 const digest = sm3(message)
@@ -51,10 +51,10 @@ const sm4Cipher = sm4Encrypt(message, key)
 const sm4Plain = sm4Decrypt(sm4Cipher, key)
 
 console.log(
-    bytesToUtf8(plaintext),
-    bytesToHex(digest),
-    valid,
-    bytesToUtf8(sm4Plain)
+  bytesToUtf8(plaintext),
+  bytesToHex(digest),
+  valid,
+  bytesToUtf8(sm4Plain)
 )
 ```
 
@@ -63,7 +63,7 @@ console.log(
 ### SM2
 
 | Function                                             | Signature                                                           | Notes                                                               |
-|------------------------------------------------------|---------------------------------------------------------------------|---------------------------------------------------------------------|
+| ---------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `generateKeyPair(seed?)`                             | `(seed?: Uint8Array) => { privateKey, publicKey }`                  | Uses a secure random source unless a seed is supplied.              |
 | `getPublicKeyFromPrivateKey(privateKey)`             | `(Uint8Array) => Uint8Array`                                        | Derives the uncompressed public key.                                |
 | `compressPublicKey(publicKey)`                       | `(Uint8Array) => Uint8Array`                                        | Uncompressed to compressed point form.                              |
@@ -81,7 +81,7 @@ console.log(
 ### SM3
 
 | Function                | Signature                                    | Notes                                                  |
-|-------------------------|----------------------------------------------|--------------------------------------------------------|
+| ----------------------- | -------------------------------------------- | ------------------------------------------------------ |
 | `sm3(input, options?)`  | `(Uint8Array, { key, mode? }) => Uint8Array` | Plain digest, or HMAC-SM3 when `options.key` is given. |
 | `sm3Hmac(key, message)` | `(Uint8Array, Uint8Array) => Uint8Array`     | Direct HMAC-SM3.                                       |
 | `kdf(z, length)`        | `(Uint8Array, number) => Uint8Array`         | SM2 key derivation function.                           |
@@ -89,7 +89,7 @@ console.log(
 ### SM4
 
 | Function                           | Signature                                                         | Notes                                                                           |
-|------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| ---------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `sm4Encrypt(input, key, options?)` | `(Uint8Array, Uint8Array, SM4Options) => Uint8Array \| GCMResult` | `mode`: `'ecb'` (default), `'cbc'`, `'gcm'`. Returns `{ output, tag }` for GCM. |
 | `sm4Decrypt(input, key, options?)` | `(Uint8Array, Uint8Array, SM4Options) => Uint8Array`              | Pass `tag` in options for GCM.                                                  |
 | `sm4Ghash(h, ...segments)`         | `(Uint8Array, ...Uint8Array[]) => Uint8Array`                     | Standalone GHASH core; each segment is zero-padded to 16 bytes.                 |
@@ -99,7 +99,7 @@ SM4 `padding` is `'pkcs#7'` / `'pkcs#5'` / `'none'` (default `'pkcs#7'`), and CB
 ### Byte / string helpers
 
 | Function                       | Signature                                |
-|--------------------------------|------------------------------------------|
+| ------------------------------ | ---------------------------------------- |
 | `hexToBytes(string)`           | `(string) => Uint8Array`                 |
 | `bytesToHex(Uint8Array)`       | `(Uint8Array) => string`                 |
 | `utf8ToBytes(string)`          | `(string) => Uint8Array`                 |
@@ -125,33 +125,33 @@ asynchronous `wx.getRandomValues` API instead, so preload a secure pool and inst
 generating SM2 keys, encryption nonces, or signatures:
 
 ```ts
-import {setRandomSource} from "sm-cipher"
+import { setRandomSource } from "sm-cipher"
 
 let pool = new Uint8Array(0)
 let offset = 0
 
 export function refillRandomPool(length = 65536): Promise<void> {
-    return new Promise((resolve, reject) => {
-        wx.getRandomValues({
-            length,
-            success(result) {
-                pool = new Uint8Array(result.randomValues)
-                offset = 0
-                resolve()
-            },
-            fail: reject,
-        })
+  return new Promise((resolve, reject) => {
+    wx.getRandomValues({
+      length,
+      success(result) {
+        pool = new Uint8Array(result.randomValues)
+        offset = 0
+        resolve()
+      },
+      fail: reject,
     })
+  })
 }
 
 await refillRandomPool()
 setRandomSource((length) => {
-    if (offset + length > pool.length)
-        throw new Error("Secure random pool exhausted")
-    const output = pool.slice(offset, offset + length)
-    pool.fill(0, offset, offset + length)
-    offset += length
-    return output
+  if (offset + length > pool.length)
+    throw new Error("Secure random pool exhausted")
+  const output = pool.slice(offset, offset + length)
+  pool.fill(0, offset, offset + length)
+  offset += length
+  return output
 })
 ```
 
@@ -168,7 +168,7 @@ Representative operations per second on Node 25.2.1, Windows x64, Intel Core i5-
 is better; results depend on the runtime, hardware, and system load.
 
 | Case                            | sm-cipher | sm-crypto | sm-crypto-v2 |
-|---------------------------------|----------:|----------:|-------------:|
+| ------------------------------- | --------: | --------: | -----------: |
 | SM2 generateKeyPair             |     3,232 |       103 |        2,777 |
 | SM2 encrypt                     |       537 |        50 |          229 |
 | SM2 encrypt (precomputed key)   |     1,482 |       N/A |          931 |
@@ -188,7 +188,7 @@ The SM2 base-point table is initialized lazily. It uses 5-bit signed windows wit
 Fresh-process measurements with forced garbage collection produced these median results:
 
 | Library      |  Import | First keypair | Warm keypair | First-call heap growth | Retained heap estimate |
-|--------------|--------:|--------------:|-------------:|-----------------------:|-----------------------:|
+| ------------ | ------: | ------------: | -----------: | ---------------------: | ---------------------: |
 | sm-cipher    |  4.16ms |        7.96ms |       0.12ms |               1,037KiB |                 215KiB |
 | sm-crypto-v2 | 35.39ms |       56.87ms |       0.41ms |               3,393KiB |               1,315KiB |
 

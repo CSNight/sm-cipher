@@ -2,27 +2,13 @@
  * SM2 elliptic curve cryptography implementation.
  */
 
-import {
-  concatBytes,
-  copyBytes,
-  equalBytes,
-  hexToBytes,
-  randomBytes,
-  utf8ToBytes,
-  xorBytes,
-} from "./utils.ts"
-import { kdf, sm3Digest } from "./sm3.ts"
-import type {
-  PrecomputedPublicKey,
-  PublicKey,
-  SignaturePoint,
-  Sm2CipherOptions,
-  SM2Mode,
-} from "./types.ts"
+import {concatBytes, copyBytes, equalBytes, hexToBytes, randomBytes, utf8ToBytes, xorBytes,} from "./utils.ts"
+import {kdf, sm3Digest} from "./sm3.ts"
+import type {PrecomputedPublicKey, PublicKey, SignaturePoint, Sm2CipherOptions, SM2Mode,} from "./types.ts"
 
 export const C1C2C3 = 0 as SM2Mode
 export const C1C3C2 = 1 as SM2Mode
-export const SM2CipherMode = Object.freeze({ C1C2C3, C1C3C2 })
+export const SM2CipherMode = Object.freeze({C1C2C3, C1C3C2})
 
 const P = BigInt(
   "0xFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF"
@@ -42,7 +28,7 @@ const GX = BigInt(
 const GY = BigInt(
   "0xBC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0"
 )
-const G = { x: GX, y: GY, z: 1n }
+const G = {x: GX, y: GY, z: 1n}
 type JacobianPoint = { x: bigint; y: bigint; z: bigint }
 type AffinePoint = { x: bigint; y: bigint }
 type ResolvedPublicKey = {
@@ -56,7 +42,7 @@ const precomputedPublicKeys = new WeakMap<
   ResolvedPublicKey
 >()
 
-const INF: JacobianPoint = { x: 0n, y: 1n, z: 0n }
+const INF: JacobianPoint = {x: 0n, y: 1n, z: 0n}
 
 function mod(value: bigint): bigint {
   const result = value % P
@@ -94,7 +80,7 @@ function pointDouble(point: JacobianPoint): JacobianPoint {
   const nx = mod(m * m - 2n * s)
   const ny = mod(m * (s - nx) - 8n * yyyy)
   const nz = mod(2n * point.y * point.z)
-  return { x: nx, y: ny, z: nz }
+  return {x: nx, y: ny, z: nz}
 }
 
 function pointAdd(one: JacobianPoint, two: JacobianPoint): JacobianPoint {
@@ -123,7 +109,7 @@ function pointToAffine(point: JacobianPoint): AffinePoint {
   if (point.z === 0n) throw new Error("Point at infinity")
   const zi = inverse(point.z, P)
   const zi2 = mod(zi * zi)
-  return { x: mod(point.x * zi2), y: mod(point.y * zi2 * zi) }
+  return {x: mod(point.x * zi2), y: mod(point.y * zi2 * zi)}
 }
 
 function scalarMultiply(point: JacobianPoint, scalar: bigint): JacobianPoint {
@@ -145,7 +131,7 @@ let baseTable: JacobianPoint[][] | undefined
 function pointNegate(point: JacobianPoint): JacobianPoint {
   return point.z === 0n
     ? INF
-    : { x: point.x, y: point.y === 0n ? 0n : P - point.y, z: point.z }
+    : {x: point.x, y: point.y === 0n ? 0n : P - point.y, z: point.z}
 }
 
 function createFixedWindowTable(
@@ -219,7 +205,7 @@ function parsePrivateKey(privateKey: Uint8Array): bigint {
 }
 
 function affineToJacobian(point: AffinePoint): JacobianPoint {
-  return { x: point.x, y: point.y, z: 1n }
+  return {x: point.x, y: point.y, z: 1n}
 }
 
 function sqrtMod(value: bigint): bigint {
@@ -258,7 +244,7 @@ function decodePublicKey(publicKey: Uint8Array): AffinePoint {
   } else throw new Error("Invalid public key")
   if (x >= P || y >= P || mod(y * y - (x * x * x + A * x + B)) !== 0n)
     throw new Error("Invalid public key")
-  return { x, y }
+  return {x, y}
 }
 
 function resolvePublicKey(publicKey: PublicKey): ResolvedPublicKey {
@@ -442,7 +428,7 @@ function sm2EncryptBytes(
     if (message.length !== 0 && mask.every((byte) => byte === 0)) continue
     const c2 = xorBytes(message, mask)
     const c3 = sm3Digest(concatBytes(x2, message, y2))
-    return { c1: sm2C1(c1Point), c2, c3 }
+    return {c1: sm2C1(c1Point), c2, c3}
   }
 }
 
@@ -473,10 +459,10 @@ function parseSm2Cipher(
 } {
   if (asn1) {
     const decoded = decodeEncryption(ciphertext)
-    const c1 = decodePublicKey(encodePublicKey({ x: decoded.x, y: decoded.y }))
+    const c1 = decodePublicKey(encodePublicKey({x: decoded.x, y: decoded.y}))
     if (cipherMode === C1C2C3)
-      return { c1, c2: decoded.hash, c3: decoded.cipher }
-    return { c1, c2: decoded.cipher, c3: decoded.hash }
+      return {c1, c2: decoded.hash, c3: decoded.cipher}
+    return {c1, c2: decoded.cipher, c3: decoded.hash}
   }
   if (ciphertext.length < 96) throw new Error("Invalid ciphertext")
   const c1 = decodePublicKey(
@@ -485,8 +471,8 @@ function parseSm2Cipher(
   const body = ciphertext.slice(64)
   if (body.length < 32) throw new Error("Invalid ciphertext")
   if (cipherMode === C1C2C3)
-    return { c1, c2: body.slice(0, -32), c3: body.slice(-32) }
-  return { c1, c2: body.slice(32), c3: body.slice(0, 32) }
+    return {c1, c2: body.slice(0, -32), c3: body.slice(-32)}
+  return {c1, c2: body.slice(32), c3: body.slice(0, 32)}
 }
 
 export function sm2Decrypt(
@@ -567,7 +553,7 @@ function readDer(input: Uint8Array, offset: number): DerPart {
   const start = offset + header
   const next = start + length
   if (next > input.length) throw new Error("Invalid DER")
-  return { tag, value: input.slice(start, next), next }
+  return {tag, value: input.slice(start, next), next}
 }
 
 function decodeDerInteger(part: DerPart): bigint {
@@ -595,7 +581,7 @@ function decodeDerValues(input: Uint8Array): { r: bigint; s: bigint } {
   const second = readDer(sequence.value, first.next)
   if (second.next !== sequence.value.length)
     throw new Error("Invalid DER signature")
-  return { r: decodeDerInteger(first), s: decodeDerInteger(second) }
+  return {r: decodeDerInteger(first), s: decodeDerInteger(second)}
 }
 
 export function encodeDer(signature: Uint8Array): Uint8Array {
@@ -608,7 +594,7 @@ export function encodeDer(signature: Uint8Array): Uint8Array {
 }
 
 export function decodeDer(input: Uint8Array): Uint8Array {
-  const { r, s } = decodeDerValues(input)
+  const {r, s} = decodeDerValues(input)
   if (r >= N || s >= N) throw new Error("Invalid DER signature")
   return concatBytes(bigintToBytes(r), bigintToBytes(s))
 }
@@ -723,7 +709,7 @@ export function sm2Verify(
         : bytesToBigInt(getHash(data, keyBytes, options.userId))
     let r: bigint
     let s: bigint
-    if (options.der) ({ r, s } = decodeDerValues(signature))
+    if (options.der) ({r, s} = decodeDerValues(signature))
     else {
       const raw = copyBytes(signature, "signature")
       if (raw.length !== 64) return false

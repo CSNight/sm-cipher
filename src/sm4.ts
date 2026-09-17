@@ -2,17 +2,8 @@
  * SM4 block cipher implementation.
  */
 
-import {
-  concatBytes,
-  copyBytes,
-  equalBytes,
-  readU32BE,
-  rotl32,
-  writeU32BE,
-  writeU64BE,
-  xorBytes,
-} from "./utils.ts"
-import type { GCMResult, SM4Options } from "./types.ts"
+import {concatBytes, copyBytes, equalBytes, readU32BE, rotl32, writeU32BE, writeU64BE, xorBytes,} from "./utils.ts"
+import type {GCMResult, SM4Options} from "./types.ts"
 
 const SM4_SBOX = Uint8Array.from([
   0xd6, 0x90, 0xe9, 0xfe, 0xcc, 0xe1, 0x3d, 0xb7, 0x16, 0xb6, 0x14, 0xc2, 0x28,
@@ -266,7 +257,7 @@ function sm4Gcm(
   keys.fill(0)
   hBlock.fill(0)
   stream.fill(0)
-  return { output, tag: auth }
+  return {output, tag: auth}
 }
 
 function sm4BlockMode(

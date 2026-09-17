@@ -2,7 +2,7 @@
  * Shared utility functions for smcrypto.
  */
 
-import type { RandomSource } from "./types.ts"
+import type {RandomSource} from "./types.ts"
 
 let customRandomSource: RandomSource | undefined
 

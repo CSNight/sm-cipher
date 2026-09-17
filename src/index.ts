@@ -17,7 +17,7 @@ export {
   equalBytes,
 } from "./utils.ts"
 
-export { sm3, sm3Hmac, kdf } from "./sm3.ts"
+export {sm3, sm3Hmac, kdf} from "./sm3.ts"
 
 export {
   C1C2C3,
@@ -39,7 +39,7 @@ export {
   sm2Verify,
 } from "./sm2.ts"
 
-export { sm4Encrypt, sm4Decrypt, sm4Ghash } from "./sm4.ts"
+export {sm4Encrypt, sm4Decrypt, sm4Ghash} from "./sm4.ts"
 
 export type {
   Bytes,
