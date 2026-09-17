@@ -2,7 +2,14 @@
  * SM3 hash function implementation.
  */
 
-import {concatBytes, copyBytes, readU32BE, rotl32, writeU32BE, writeU64BE,} from "./utils.ts"
+import {
+  concatBytes,
+  copyBytes,
+  readU32BE,
+  rotl32,
+  writeU32BE,
+  writeU64BE,
+} from "./utils.ts"
 
 const SM3_IV = new Uint32Array([
   0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600, 0xa96f30bc, 0x163138aa,

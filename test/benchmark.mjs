@@ -18,7 +18,7 @@ import {
     sm4Encrypt,
     utf8ToBytes,
 } from "../dist/smcrypto.js"
-import {optimized, optimizedName, optimizedShortName, original, referenceName,} from "../reference.mjs"
+import {optimized, optimizedName, optimizedShortName, original, referenceName,} from "./reference.mjs"
 
 const sampleDurationMs = Number(process.env.BENCH_TIME_MS || 150)
 const samples = Number(process.env.BENCH_SAMPLES || 5)

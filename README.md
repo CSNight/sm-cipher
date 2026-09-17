@@ -236,16 +236,38 @@ Run the one-million-iteration SM4 standard vector with:
 SMCRYPTO_LONG_TESTS=1 npm test
 ```
 
-`test/test.mjs` performs bidirectional SM2 encryption/decryption and signing checks against pinned `sm-crypto@0.5.7`,
-checks SM2/SM3/SM4 ECB/CBC against `sm-crypto-v2@1.15.1`, and performs bidirectional SM4-GCM checks. It also uses
-Node/OpenSSL as an SM3/HMAC/SM4 oracle and checks GHASH/GCM against an independent bit-serial implementation. Set
-`ORIGINAL_SM_CRYPTO` to a local repository entry point to test a source checkout.
+Tests are split into two files:
+
+- `test/crossvalidation.test.mjs` is the cross-library consistency suite. `sm-crypto@0.5.7` is treated as the
+  baseline oracle: every SM2/SM3/SM4 result produced by this library is checked bidirectionally against it, and
+  `sm-crypto-v2@1.15.1` is triangulated against both this library and the baseline (SM4-GCM, which `sm-crypto` does
+  not support, is checked bidirectionally against `sm-crypto-v2` only). Run it alone with `npm run test:cross`. Set
+  `ORIGINAL_SM_CRYPTO` to a local repository entry point to run the baseline checks against a source checkout of
+  `sm-crypto` instead of the pinned dependency.
+- `test/test.mjs` covers this library's own behavior in isolation: input validation, edge cases, immutability, and
+  known-answer/OpenSSL oracle checks for SM3/HMAC/SM4/GHASH-GCM. Run it alone with `npm run test:unit`.
+
+`npm test` runs both files.
 
 ## Security Boundary
 
 The default random source is cryptographically secure, tags are compared without early exit, and GCM authenticates
 ciphertext before decryption. Native JavaScript `bigint` arithmetic is not guaranteed to be constant-time, so this
 library is not a side-channel-hardened cryptographic module.
+
+## Acknowledgements
+
+- [`sm-crypto`](https://github.com/JuneAndGreen/sm-crypto) — the de-facto reference implementation of the Chinese
+  national cryptography standards in JavaScript, used as the baseline oracle for this library's cross-validation
+  test suite.
+- [`sm-crypto-v2`](https://github.com/Cubelrti/sm-crypto-v2) — a faster, actively maintained fork of `sm-crypto`,
+  triangulated against `sm-crypto` and this library in the same test suite, including SM4-GCM coverage.
+- [`@noble/curves`](https://github.com/paulmillr/noble-curves) and [`@noble/hashes`](https://github.com/paulmillr/noble-hashes)
+  — audited, dependency-free elliptic-curve and hash primitives that informed API and implementation choices for this
+  library.
+
+Thanks to their authors and maintainers for the reference implementations and prior art that made verifying this
+library's correctness possible.
 
 ## License
 

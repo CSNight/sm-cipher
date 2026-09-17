@@ -84,7 +84,9 @@
     ]
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test test/test.mjs",
+    "test": "node --experimental-strip-types --test test/test.mjs test/crossvalidation.test.mjs",
+    "test:cross": "node --experimental-strip-types --test test/crossvalidation.test.mjs",
+    "test:unit": "node --experimental-strip-types --test test/test.mjs",
     "test:bundle": "npm run build && node --test test/bundle.test.mjs",
     "bench": "npm run build && node test/benchmark.mjs",
     "bench:throughput": "npm run build && node test/benchmark.mjs --throughput-only",
