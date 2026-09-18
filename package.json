@@ -1,6 +1,6 @@
 {
   "name": "sm-cipher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dependency-free byte-oriented SM2, SM3 and SM4 TypeScript ESM library",
   "type": "module",
   "sideEffects": false,
