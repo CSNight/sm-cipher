@@ -72,6 +72,33 @@ function sm4LKey(value: number): number {
   return (value ^ rotl32(value, 13) ^ rotl32(value, 23)) >>> 0
 }
 
+// T-table: merges Sbox substitution with the L linear transform.
+// T0[b] = L(Sbox[b] << 24), T1[b] = L(Sbox[b] << 16), etc. — one lookup
+// per input byte replaces a byte-substitution followed by 5 rotate/xor ops.
+// This is the standard SPN acceleration technique gmsm also uses for SM4.
+const SM4_T0 = new Uint32Array(256)
+const SM4_T1 = new Uint32Array(256)
+const SM4_T2 = new Uint32Array(256)
+const SM4_T3 = new Uint32Array(256)
+for (let b = 0; b < 256; b++) {
+  const sub = SM4_SBOX[b]
+  const t0 = sm4L(sub << 24)
+  SM4_T0[b] = t0
+  SM4_T1[b] = rotl32(t0, 24)
+  SM4_T2[b] = rotl32(t0, 16)
+  SM4_T3[b] = rotl32(t0, 8)
+}
+
+function sm4TRound(value: number): number {
+  return (
+    (SM4_T0[value >>> 24] ^
+      SM4_T1[(value >>> 16) & 255] ^
+      SM4_T2[(value >>> 8) & 255] ^
+      SM4_T3[value & 255]) >>>
+    0
+  )
+}
+
 function sm4RoundKeys(key: Uint8Array, decrypt: boolean): Uint32Array {
   let x0 = readU32BE(key, 0) ^ 0xa3b1bac6
   let x1 = readU32BE(key, 4) ^ 0x56aa3350
@@ -104,10 +131,10 @@ function sm4Block(
   let x2 = readU32BE(input, inputOffset + 8)
   let x3 = readU32BE(input, inputOffset + 12)
   for (let i = 0; i < 32; i += 4) {
-    x0 = (x0 ^ sm4L(sm4Sub(x1 ^ x2 ^ x3 ^ keys[i]))) >>> 0
-    x1 = (x1 ^ sm4L(sm4Sub(x2 ^ x3 ^ x0 ^ keys[i + 1]))) >>> 0
-    x2 = (x2 ^ sm4L(sm4Sub(x3 ^ x0 ^ x1 ^ keys[i + 2]))) >>> 0
-    x3 = (x3 ^ sm4L(sm4Sub(x0 ^ x1 ^ x2 ^ keys[i + 3]))) >>> 0
+    x0 = (x0 ^ sm4TRound(x1 ^ x2 ^ x3 ^ keys[i])) >>> 0
+    x1 = (x1 ^ sm4TRound(x2 ^ x3 ^ x0 ^ keys[i + 1])) >>> 0
+    x2 = (x2 ^ sm4TRound(x3 ^ x0 ^ x1 ^ keys[i + 2])) >>> 0
+    x3 = (x3 ^ sm4TRound(x0 ^ x1 ^ x2 ^ keys[i + 3])) >>> 0
   }
   writeU32BE(output, outputOffset, x3)
   writeU32BE(output, outputOffset + 4, x2)

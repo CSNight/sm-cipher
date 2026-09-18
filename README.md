@@ -169,20 +169,26 @@ is better; results depend on the runtime, hardware, and system load.
 
 | Case                            | sm-cipher | sm-crypto | sm-crypto-v2 |
 | ------------------------------- | --------: | --------: | -----------: |
-| SM2 generateKeyPair             |     3,232 |       103 |        2,777 |
-| SM2 encrypt                     |       537 |        50 |          229 |
-| SM2 encrypt (precomputed key)   |     1,482 |       N/A |          931 |
-| SM2 decrypt                     |       677 |       103 |          256 |
-| SM2 sign                        |     1,382 |        49 |        1,196 |
-| SM2 sign (supplied public key)  |     2,491 |        92 |        2,007 |
-| SM2 verify                      |       576 |        50 |          235 |
-| SM3, hexadecimal output (4 KiB) |    35,358 |    15,162 |       32,926 |
-| SM4 ECB encrypt (4 KiB)         |    16,467 |    10,168 |       14,374 |
-| SM4 ECB decrypt (4 KiB)         |    16,587 |    10,718 |       14,915 |
-| SM4 CBC encrypt (4 KiB)         |    14,889 |     8,801 |       12,990 |
-| SM4 CBC decrypt (4 KiB)         |    14,930 |     9,378 |       12,760 |
-| SM4 GCM encrypt (4 KiB)         |     7,974 |       N/A |        5,626 |
-| SM4 GCM decrypt (4 KiB)         |     7,963 |       N/A |        5,409 |
+| SM2 generateKeyPair             |     2,357 |       101 |        2,169 |
+| SM2 encrypt                     |       552 |        49 |          159 |
+| SM2 encrypt (precomputed key)   |     1,328 |       N/A |          907 |
+| SM2 decrypt                     |       670 |        98 |          246 |
+| SM2 sign                        |     1,277 |        49 |        1,060 |
+| SM2 sign (supplied public key)  |     2,148 |        97 |        1,807 |
+| SM2 verify                      |       575 |        52 |          227 |
+| SM3, hexadecimal output (4 KiB) |    34,890 |    14,432 |       30,749 |
+| SM4 ECB encrypt (4 KiB)         |    22,571 |     9,745 |       14,885 |
+| SM4 ECB decrypt (4 KiB)         |    21,185 |     9,561 |       14,116 |
+| SM4 CBC encrypt (4 KiB)         |    19,350 |     8,395 |       12,391 |
+| SM4 CBC decrypt (4 KiB)         |    20,712 |     9,354 |       12,818 |
+| SM4 GCM encrypt (4 KiB)         |     9,208 |       N/A |        5,572 |
+| SM4 GCM decrypt (4 KiB)         |     9,637 |       N/A |        5,718 |
+
+Figures above use 15 samples (`BENCH_SAMPLES=15`) for tighter medians; SM2/SM3 use hexadecimal
+output and SM4 uses byte keys/output where supported. SM4 throughput improved after switching the
+block round function to combined S-box/L-transform lookup tables (T-tables), and SM2 improved after
+specializing Jacobian point doubling for the curve's `a ≡ -3 (mod p)` parameter — both reduce the
+number of field multiplications on the hot path without changing any public API or output.
 
 The SM2 base-point table is initialized lazily. It uses 5-bit signed windows with 53 windows and 17 slots per window.
 Fresh-process measurements with forced garbage collection produced these median results:

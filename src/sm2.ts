@@ -83,14 +83,16 @@ function inverse(value: bigint, modulus: bigint): bigint {
   return x0 < 0n ? x0 + modulus : x0
 }
 
+// SM2's curve parameter A ≡ -3 (mod P), so we use the standard a=-3
+// Jacobian doubling formula: M = 3(X-Z²)(X+Z²), which is algebraically
+// equal to 3X² + A·Z⁴ but needs one fewer field multiplication.
 function pointDouble(point: JacobianPoint): JacobianPoint {
   if (point.z === 0n || point.y === 0n) return INF
   const yy = mod(point.y * point.y)
   const yyyy = mod(yy * yy)
   const zz = mod(point.z * point.z)
-  const zzzz = mod(zz * zz)
   const s = mod(4n * point.x * yy)
-  const m = mod(3n * point.x * point.x + A * zzzz)
+  const m = mod(3n * (point.x - zz) * (point.x + zz))
   const nx = mod(m * m - 2n * s)
   const ny = mod(m * (s - nx) - 8n * yyyy)
   const nz = mod(2n * point.y * point.z)
