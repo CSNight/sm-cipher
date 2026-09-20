@@ -1,6 +1,6 @@
 {
   "name": "sm-cipher",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Dependency-free byte-oriented SM2, SM3 and SM4 TypeScript ESM library",
   "type": "module",
   "sideEffects": false,
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Cubelrti/sm-crypto-v2"
+    "url": "git+https://github.com/CSNight/sm-cipher"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
